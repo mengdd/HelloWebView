@@ -184,7 +184,7 @@ public class MainActivity extends Activity {
     }
 
     private void initTitlebar() {
-        // 地址栏除了进度条之外其他最后需要隐藏
+
         mProgessBar = (ProgressBar) findViewById(R.id.progress_bar);
         mAddress = (EditText) findViewById(R.id.address);
         mAddress.setOnFocusChangeListener(new AddressFocusChange());
@@ -268,13 +268,6 @@ public class MainActivity extends Activity {
         settings.setBuiltInZoomControls(true);
         settings.setUseWideViewPort(true);
         settings.setLoadWithOverviewMode(true);
-
-        // 设置UA,在系统UA上添加串SogouMSESDK
-        StringBuffer uaStringBuffer = new StringBuffer();
-        uaStringBuffer.append(settings.getUserAgentString());
-        uaStringBuffer.append("");
-        uaStringBuffer.append("SogouMSESDK");
-        settings.setUserAgentString(uaStringBuffer.toString());
 
         // set page cache
         BrowserUtils.setWebViewPageCache(settings, 10);
