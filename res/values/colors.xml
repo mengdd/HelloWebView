@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="white">#FFFFFFFF</color>
+
+    <!-- progress bar -->
+    <drawable name="progress_bar_first_progress">#FF5094F6</drawable>
+    <drawable name="progress_bar_background">#FFFFFFFF</drawable>
+
+</resources>

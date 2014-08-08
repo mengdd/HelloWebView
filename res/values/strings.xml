@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">HelloWebView</string>
+    <string name="hello_world">Hello world!</string>
+
+    <!-- 地址栏 -->
+    <string name="go_button">GO</string>
+    <string name="address_hint">Type website address here</string>
+
+    <!-- WebView -->
+    <string name="webview_file_upload_hint">请选择打开文件的程序</string>
+
+    <!-- Download -->
+    <string name="download_started">开始下载%s</string>
+    <string name="download_finished">下载完成!</string>
+    <string name="download_no_network_connected_hint">当前网络异常!</string>
+    <string name="download_already_started_hint">正在下载%s</string>
+
+</resources>
