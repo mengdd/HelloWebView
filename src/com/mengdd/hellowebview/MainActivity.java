@@ -116,6 +116,8 @@ public class MainActivity extends Activity {
         gotoAddress();
 
         processExtraData();
+
+
     }
 
     @Override

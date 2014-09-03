@@ -5,7 +5,7 @@ import java.io.File;
 public class OnDownloadChangedAdapter implements OnDownloadChangedListener {
 
     @Override
-    public void onDuplicateDownloadRefused(final File file) {
+    public void onAlreadyStarted(final File file) {
 
     }
 

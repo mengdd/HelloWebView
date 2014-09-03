@@ -4,7 +4,7 @@ import java.io.File;
 
 public interface OnDownloadChangedListener {
 
-    public void onDuplicateDownloadRefused(final File file);
+    public void onAlreadyStarted(final File file);
 
     public void onDownloadStarted(final File file);
 

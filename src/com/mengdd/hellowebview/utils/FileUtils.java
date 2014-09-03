@@ -61,8 +61,7 @@ public class FileUtils {
      * @return
      */
     public static String getFileName(String downloadUrl) {
-        String filenameUndecoded = URLUtil.guessFileName(downloadUrl, null,
-                null);
+        String filenameUndecoded = URLUtil.guessFileName(downloadUrl, null, null);
         try {
             filenameUndecoded = URLDecoder.decode(filenameUndecoded, "UTF-8");
         }
@@ -103,15 +102,14 @@ public class FileUtils {
      * @param fileName
      * @return
      */
-    public static boolean saveBitmap(Bitmap bitmap, String dirName,
-            String fileName) {
+    public static boolean saveBitmap(Bitmap bitmap, String dirName, String fileName) {
 
         File file = new File(dirName, fileName);
         FileUtils.createFile(file.toString());
         LogUtil.i(LOG_TAG, "saveBitmap: " + file.toString());
         try {
-            BufferedOutputStream stream = new BufferedOutputStream(
-                    new FileOutputStream(file.toString()));
+            BufferedOutputStream stream = new BufferedOutputStream(new FileOutputStream(
+                    file.toString()));
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
             stream.flush();
             stream.close();
@@ -120,8 +118,7 @@ public class FileUtils {
             e.printStackTrace();
             return false;
         }
-        LogUtil.i(LOG_TAG, "save finished! " + file.toString() + ", length: "
-                + file.length());
+        LogUtil.i(LOG_TAG, "save finished! " + file.toString() + ", length: " + file.length());
         return true;
     }
 
@@ -151,5 +148,44 @@ public class FileUtils {
             e.printStackTrace();
         }
         return tmpFile;
+    }
+
+    public static boolean createSingleDir(String path) {
+        LogUtil.i(LOG_TAG, "create sub dir: " + path);
+        if (null == path) {
+            return false;
+        }
+        File f = new File(path);
+        if (f.exists()) {
+            if (f.isDirectory()) {
+                return true;
+            }
+            else {
+                // exist but is a file
+                f.delete();
+            }
+
+        }
+
+        // if file not exists
+        return f.mkdir();
+    }
+
+    public static boolean createDirForcely(String dirPath) {
+        LogUtil.i(LOG_TAG, "create dir forcely: " + dirPath);
+        if (null == dirPath) {
+            return false;
+        }
+        File file = new File(dirPath);
+
+        File parent = null;
+        parent = file.getParentFile();
+
+        if (null != parent) {
+            // Recursion
+            createDirForcely(parent.toString());
+        }
+        return createSingleDir(file.toString());
+
     }
 }
