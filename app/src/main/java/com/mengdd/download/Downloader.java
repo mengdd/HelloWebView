@@ -1,5 +1,7 @@
 package com.mengdd.download;
 
+import com.mengdd.hellowebview.utils.LogUtil;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -9,8 +11,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.mengdd.hellowebview.utils.LogUtil;
 
 public class Downloader {
 
@@ -27,8 +27,7 @@ public class Downloader {
             mDownloadUrl = new URL(url);
             mFile = DownloadManager.getDownloadFile(url);
 
-        }
-        catch (MalformedURLException e) {
+        } catch (MalformedURLException e) {
             e.printStackTrace();
         }
 
@@ -100,19 +99,16 @@ public class Downloader {
                     }
                     onFinished();
 
-                }
-                else {
+                } else {
                     LogUtil.e(LOG_TAG, "response code: " + connection.getResponseCode());
                     onFailed();
                 }
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 LogUtil.e(LOG_TAG, "exception in download");
                 e.printStackTrace();
                 onFailed();
 
-            }
-            finally {
+            } finally {
 
                 isDownloading = false;
                 try {
@@ -127,8 +123,7 @@ public class Downloader {
                     if (null != connection) {
                         connection.disconnect();
                     }
-                }
-                catch (IOException exception) {
+                } catch (IOException exception) {
                     exception.printStackTrace();
                 }
 

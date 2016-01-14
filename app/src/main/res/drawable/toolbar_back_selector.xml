@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <selector xmlns:android="http://schemas.android.com/apk/res/android" android:variablePadding="true">
 
-    <item android:drawable="@drawable/toolbar_back_do" android:state_pressed="true"/>
-    <item android:drawable="@drawable/toolbar_back_disable" android:state_enabled="false"/>
-    <item android:drawable="@drawable/toolbar_back_normal"/>
+    <item android:drawable="@drawable/toolbar_back_do" android:state_pressed="true" />
+    <item android:drawable="@drawable/toolbar_back_disable" android:state_enabled="false" />
+    <item android:drawable="@drawable/toolbar_back_normal" />
 
 </selector>

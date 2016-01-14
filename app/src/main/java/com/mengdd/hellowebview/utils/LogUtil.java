@@ -1,10 +1,11 @@
 package com.mengdd.hellowebview.utils;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import android.os.Environment;
 import android.text.TextUtils;
 import android.util.Log;
+
+import java.io.File;
+import java.io.FileOutputStream;
 
 final public class LogUtil {
     private final static int sLogLevel = Log.DEBUG;
@@ -152,12 +153,10 @@ final public class LogUtil {
             if (LOG_TO_FILE) {
                 logToFile(tag, msg);
                 return 0;
-            }
-            else {
+            } else {
                 return Log.println(priority, tag, msg);
             }
-        }
-        else {
+        } else {
             return 0;
         }
     }
@@ -181,8 +180,7 @@ final public class LogUtil {
             LOG_OUTPUT_STREAM.write(builder.toString().getBytes());
             LOG_OUTPUT_STREAM.flush();
             LOG_OUTPUT_STREAM.close();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

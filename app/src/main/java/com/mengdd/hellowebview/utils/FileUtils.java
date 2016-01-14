@@ -1,13 +1,14 @@
 package com.mengdd.hellowebview.utils;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.webkit.URLUtil;
+
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URLDecoder;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.webkit.URLUtil;
 
 public class FileUtils {
 
@@ -46,8 +47,7 @@ public class FileUtils {
 
                 file.getParentFile().mkdirs();
                 file.createNewFile();
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
@@ -64,8 +64,7 @@ public class FileUtils {
         String filenameUndecoded = URLUtil.guessFileName(downloadUrl, null, null);
         try {
             filenameUndecoded = URLDecoder.decode(filenameUndecoded, "UTF-8");
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -113,8 +112,7 @@ public class FileUtils {
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
             stream.flush();
             stream.close();
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
             return false;
         }
@@ -143,8 +141,7 @@ public class FileUtils {
         File tmpFile = null;
         try {
             tmpFile = File.createTempFile(TEMP_FILE_PREFIX, null, dirFile);
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
         return tmpFile;
@@ -159,8 +156,7 @@ public class FileUtils {
         if (f.exists()) {
             if (f.isDirectory()) {
                 return true;
-            }
-            else {
+            } else {
                 // exist but is a file
                 f.delete();
             }

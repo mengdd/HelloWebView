@@ -1,15 +1,15 @@
 package com.mengdd.download;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
+import android.content.Context;
+import android.os.Environment;
+import android.text.TextUtils;
 
 import com.mengdd.hellowebview.utils.FileUtils;
 import com.mengdd.hellowebview.utils.LogUtil;
 
-import android.content.Context;
-import android.os.Environment;
-import android.text.TextUtils;
+import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 public class DownloadManager {
     private static final String LOG_TAG = "DownloadManager";
@@ -40,7 +40,7 @@ public class DownloadManager {
     }
 
     public boolean addDownloadTask(final Context context, final String downloadUrl,
-            final OnDownloadChangedListener onDownloadChangedListener) {
+                                   final OnDownloadChangedListener onDownloadChangedListener) {
 
         if (TextUtils.isEmpty(downloadUrl)) {
             LogUtil.i(LOG_TAG, "download url in web is empty!");

@@ -34,14 +34,13 @@ public class MediaUtil {
      * Users choose a app to play media
      */
     private static boolean playMediaForUserSelect(Context c, String url,
-            String mimetype) {
+                                                  String mimetype) {
         Intent intent = BrowserUtils.newIntentFromSelf(Intent.ACTION_VIEW);
         Uri name = Uri.parse(url);
         intent.setDataAndType(name, mimetype);
         try {
             c.startActivity(intent);
-        }
-        catch (ActivityNotFoundException e) {
+        } catch (ActivityNotFoundException e) {
             return false;
         }
         return true;

@@ -1,12 +1,5 @@
 package com.mengdd.hellowebview;
 
-import java.util.Set;
-import com.mengdd.download.DownloadManager;
-import com.mengdd.download.OnDownloadChangedAdapter;
-import com.mengdd.hellowebview.utils.BrowserUtils;
-import com.mengdd.hellowebview.utils.DeviceUtils;
-import com.mengdd.hellowebview.utils.LogUtil;
-import com.mengdd.hellowebview.utils.MediaUtil;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
@@ -22,9 +15,7 @@ import android.os.Message;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.Window;
-import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
@@ -33,44 +24,56 @@ import android.webkit.SslErrorHandler;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
+import android.webkit.WebStorage.QuotaUpdater;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.webkit.WebStorage.QuotaUpdater;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.TextView.OnEditorActionListener;
+
+import com.mengdd.download.DownloadManager;
+import com.mengdd.download.OnDownloadChangedAdapter;
+import com.mengdd.hellowebview.utils.BrowserUtils;
+import com.mengdd.hellowebview.utils.DeviceUtils;
+import com.mengdd.hellowebview.utils.LogUtil;
+import com.mengdd.hellowebview.utils.MediaUtil;
+
+import java.util.Set;
+
+import butterknife.Bind;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import butterknife.OnEditorAction;
+import butterknife.OnFocusChange;
 
 @SuppressLint("SetJavaScriptEnabled")
 public class MainActivity extends Activity {
     private static final String LOG_TAG = "WebViewActivity";
 
-    // webview framelayout
-    private FrameLayout mWebViewRoot = null;
-    // progress bar
-    private ProgressBar mProgessBar = null;
-    // webview
-    private WebView mWebView = null;
+    @Bind(R.id.webview_layout)
+    FrameLayout webViewRoot;
+    @Bind(R.id.progress_bar)
+    ProgressBar progressBar;
+    @Bind(R.id.webview)
+    WebView webView;
 
-    // address
-    private ViewGroup mTitleLayout = null;
-    private EditText mAddress = null;
-    private Button mGoToAddressBtn = null;
-    // toolbar
-    @SuppressWarnings("unused")
-    private View mToolbar = null;
-    private View mGoBackBtn = null;
-    private View mForwardBtn = null;
-    private View mRefreshBtn = null;
+    @Bind(R.id.address)
+    EditText addressEditText;
+    @Bind(R.id.go_button)
+    Button goToAddressButton;
+    @Bind(R.id.go_back)
+    View goBackButton;
+    @Bind(R.id.forward)
+    View forwardButton;
 
     private static Context mContext = null;
 
     // for file upload
     private ValueCallback<Uri> mUploadMessage = null;
-    private int FILECHOOSER_RESULTCODE = 0x1;
+    private int FILE_CHOOSER_RESULT_CODE = 0x1;
 
     // messages
 
@@ -85,19 +88,21 @@ public class MainActivity extends Activity {
 
             switch (msg.what) {
 
-            case MSG_SHOW_TOAST:
-                LogUtil.i(LOG_TAG, "MSG_SHOW_TOAST");
-                if (!isFinishing()) {
-                    String toast = (String) msg.obj;
-                    Toast.makeText(mContext, toast, Toast.LENGTH_SHORT).show();
-                }
+                case MSG_SHOW_TOAST:
+                    LogUtil.i(LOG_TAG, "MSG_SHOW_TOAST");
+                    if (!isFinishing()) {
+                        String toast = (String) msg.obj;
+                        Toast.makeText(mContext, toast, Toast.LENGTH_SHORT).show();
+                    }
 
-                break;
-            default:
-                break;
+                    break;
+                default:
+                    break;
             }
 
-        };
+        }
+
+        ;
     };
 
     @Override
@@ -109,14 +114,18 @@ public class MainActivity extends Activity {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
 
         setContentView(R.layout.activity_main);
+        ButterKnife.bind(this);
 
         initWebView();
-        initTitlebar();
-        initToolbar();
+
+        Uri intentUri = getIntent().getData();
+        addressEditText.setText(intentUri != null ? intentUri.toString() : Constants.DEFAULT_TEST_URL);
+
+        updateToolbarButtons();
+
         gotoAddress();
 
         processExtraData();
-
 
     }
 
@@ -126,8 +135,10 @@ public class MainActivity extends Activity {
         LogUtil.i(LOG_TAG, "----- onNewIntent ---");
         setIntent(newIntent);
         Uri intentUri = getIntent().getData();
-        mAddress.setText(intentUri.toString());
-        gotoAddress();
+        if (intentUri != null) {
+            addressEditText.setText(intentUri.toString());
+            gotoAddress();
+        }
 
         processExtraData();
 
@@ -148,33 +159,28 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        mWebView.onResume();
+        webView.onResume();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        mWebView.onPause();
+        webView.onPause();
     }
 
     @Override
     protected void onDestroy() {
 
-        mWebViewRoot.removeView(mWebView);
-        mWebView.destroy();
+        webViewRoot.removeView(webView);
+        webView.destroy();
 
         super.onDestroy();
     }
 
     @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-    }
-
-    @Override
     protected void onActivityResult(int requestCode, int resultCode,
-            Intent intent) {
-        if (requestCode == FILECHOOSER_RESULTCODE) {
+                                    Intent intent) {
+        if (requestCode == FILE_CHOOSER_RESULT_CODE) {
             if (null == mUploadMessage) {
                 return;
             }
@@ -185,83 +191,43 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void initTitlebar() {
-
-        mProgessBar = (ProgressBar) findViewById(R.id.progress_bar);
-        mAddress = (EditText) findViewById(R.id.address);
-        mAddress.setOnFocusChangeListener(new AddressFocusChange());
-        mAddress.setOnEditorActionListener(new EditorAction());
-        Uri intentUri = getIntent().getData();
-        if (null != intentUri) {
-            mAddress.setText(intentUri.toString());
-        }
-        else {
-            mAddress.setText(Constants.DEFAULT_TEST_URL);
-        }
-        mGoToAddressBtn = (Button) findViewById(R.id.go_button);
-        mGoToAddressBtn.setOnClickListener(new OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                gotoAddress();
-            }
-        });
-
-        mTitleLayout = (ViewGroup) findViewById(R.id.address_layout);
-
+    @OnFocusChange(R.id.address)
+    void onAddressFocusChanged(View v, boolean hasFocus) {
+        goToAddressButton.setVisibility(hasFocus ? View.VISIBLE : View.GONE);
     }
 
-    private void gotoAddress() {
-        String addr = mAddress.getText().toString();
-        StringBuffer fullAddr = new StringBuffer();
-        if (!addr.equals("")) {
-            if (addr.indexOf("http://") != -1 || addr.indexOf("https://") != -1) {
-                fullAddr.append(addr);
-            }
-            else {
-                fullAddr.append("http://");
-                fullAddr.append(addr);
-            }
-            mAddress.setText(fullAddr.toString());
-            mWebView.loadUrl(fullAddr.toString());
-            mWebView.requestFocus();
-        }
-    }
-
-    private class AddressFocusChange implements View.OnFocusChangeListener {
-        @Override
-        public void onFocusChange(View v, boolean hasFocus) {
-            if (hasFocus) {
-                mGoToAddressBtn.setVisibility(View.VISIBLE);
-            }
-            else {
-                mGoToAddressBtn.setVisibility(View.GONE);
-            }
-        }
-
-    }
-
-    private class EditorAction implements OnEditorActionListener {
-
-        @Override
-        public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-            switch (actionId) {
+    @OnEditorAction(R.id.address)
+    boolean onAddressEditorAction(TextView v, int actionId, KeyEvent event) {
+        switch (actionId) {
             case EditorInfo.IME_ACTION_GO:
                 gotoAddress();
                 break;
-            }
-            return true;
         }
+        return true;
+    }
 
+    @OnClick(R.id.go_button)
+    void gotoAddress() {
+        String address = addressEditText.getText().toString();
+        StringBuffer fullAddr = new StringBuffer();
+        if (!address.equals("")) {
+            if (address.indexOf("http://") != -1 || address.indexOf("https://") != -1) {
+                fullAddr.append(address);
+            } else {
+                fullAddr.append("http://");
+                fullAddr.append(address);
+            }
+            addressEditText.setText(fullAddr.toString());
+            webView.loadUrl(fullAddr.toString());
+            webView.requestFocus();
+        }
     }
 
     @SuppressLint("JavascriptInterface")
     private void initWebView() {
-        mWebViewRoot = (FrameLayout) findViewById(R.id.webview_layout);
-        mWebView = (WebView) findViewById(R.id.webview);
 
         // Settings
-        WebSettings settings = mWebView.getSettings();
+        WebSettings settings = webView.getSettings();
         settings.setDefaultTextEncodingName("GBK");
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
@@ -276,8 +242,7 @@ public class MainActivity extends Activity {
 
         if (DeviceUtils.getSDKVersion() > 11) {
             settings.setPluginState(WebSettings.PluginState.ON_DEMAND);
-        }
-        else {
+        } else {
             settings.setPluginState(WebSettings.PluginState.ON);
         }
 
@@ -295,14 +260,14 @@ public class MainActivity extends Activity {
         CookieManager cookieManager = CookieManager.getInstance();
         cookieManager.setAcceptCookie(true);
 
-        mWebView.requestFocus();
+        webView.requestFocus();
 
         // download in web
-        mWebView.setDownloadListener(new DownloadListener() {
+        webView.setDownloadListener(new DownloadListener() {
             @Override
             public void onDownloadStart(String url, String userAgent,
-                    String contentDisposition, String mimetype,
-                    long contentLength) {
+                                        String contentDisposition, String mimetype,
+                                        long contentLength) {
 
                 LogUtil.d(url);
 
@@ -320,11 +285,11 @@ public class MainActivity extends Activity {
 
             }
         });
-        mWebView.setWebViewClient(new WebViewClient() {
+        webView.setWebViewClient(new WebViewClient() {
 
             @Override
             public void onReceivedSslError(WebView view,
-                    SslErrorHandler handler, SslError error) {
+                                           SslErrorHandler handler, SslError error) {
                 handler.proceed();
             }
 
@@ -342,7 +307,7 @@ public class MainActivity extends Activity {
             @Override
             public void onPageFinished(WebView view, String url) {
 
-                mAddress.setText(url);
+                addressEditText.setText(url);
 
                 updateToolbarButtons();
                 loadShareJavascript(view);
@@ -351,61 +316,40 @@ public class MainActivity extends Activity {
             }
         });
 
-        mWebView.setWebChromeClient(new MyWebChromeClient());
+        webView.setWebChromeClient(new MyWebChromeClient());
 
     }
 
-    private void initToolbar() {
-        mToolbar = findViewById(R.id.toolbar);
-        mGoBackBtn = findViewById(R.id.go_back);
-        mGoBackBtn.setOnClickListener(mToolbarItemClickListener);
-        mForwardBtn = findViewById(R.id.forward);
-        mForwardBtn.setOnClickListener(mToolbarItemClickListener);
-        mRefreshBtn = findViewById(R.id.refresh);
-        mRefreshBtn.setOnClickListener(mToolbarItemClickListener);
-
-        updateToolbarButtons();
-
-    }
-
-    private OnClickListener mToolbarItemClickListener = new OnClickListener() {
-
-        @Override
-        public void onClick(View v) {
-            int id = v.getId();
-            if (R.id.go_back == id) {
-                if (mWebView.canGoBack()) {
-                    mWebView.goBack();
-                }
-                else {
-                    finish();
-                }
-            }
-            else if (R.id.forward == id) {
-                if (mWebView.canGoForward()) {
-                    mWebView.goForward();
-                }
-            }
-            else if (R.id.refresh == id) {
-                mWebView.reload();
-
-            }
-
+    @OnClick(R.id.go_back)
+    void goBack() {
+        if (webView.canGoBack()) {
+            webView.goBack();
+        } else {
+            finish();
         }
+    }
 
-    };
+    @OnClick(R.id.forward)
+    void goForward() {
+        if (webView.canGoForward()) {
+            webView.goForward();
+        }
+    }
+
+    @OnClick(R.id.refresh)
+    void refresh() {
+        webView.reload();
+    }
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         // Check if the key event was the Back button and if there's history
         if (keyCode == KeyEvent.KEYCODE_BACK) {
 
-            if (mWebView.canGoBack()) {
-                // webview back
-                mWebView.goBack();
+            if (webView.canGoBack()) {
+                webView.goBack();
                 return true;
-            }
-            else {
+            } else {
                 finish();
                 return true;
 
@@ -421,8 +365,8 @@ public class MainActivity extends Activity {
     private void updateToolbarButtons() {
 
         LogUtil.i(LOG_TAG, "update buttons");
-        mGoBackBtn.setEnabled(true);
-        mForwardBtn.setEnabled(mWebView.canGoForward());
+        goBackButton.setEnabled(true);
+        forwardButton.setEnabled(webView.canGoForward());
 
     }
 
@@ -466,12 +410,11 @@ public class MainActivity extends Activity {
             }
 
             if (newProgress > 0 && newProgress < 100) {
-                mProgessBar.setVisibility(View.VISIBLE);
-                mProgessBar.setProgress(newProgress);
-            }
-            else if (newProgress == 100) {
+                progressBar.setVisibility(View.VISIBLE);
+                progressBar.setProgress(newProgress);
+            } else if (newProgress == 100) {
                 isHalfLoadNotified = false;
-                mProgessBar.setVisibility(View.GONE);
+                progressBar.setVisibility(View.GONE);
                 setProgress(0);
                 // sync cookie to disk
                 CookieSyncManager.getInstance().sync();
@@ -481,14 +424,14 @@ public class MainActivity extends Activity {
 
         @Override
         public void onGeolocationPermissionsShowPrompt(String origin,
-                android.webkit.GeolocationPermissions.Callback callback) {
+                                                       android.webkit.GeolocationPermissions.Callback callback) {
             super.onGeolocationPermissionsShowPrompt(origin, callback);
             callback.invoke(origin, true, false);
         }
 
         // For Android 3.0+
         public void openFileChooser(ValueCallback<Uri> uploadMsg,
-                String acceptType) {
+                                    String acceptType) {
             if (mUploadMessage != null) {
                 return;
             }
@@ -497,9 +440,9 @@ public class MainActivity extends Activity {
             intent.addCategory(Intent.CATEGORY_OPENABLE);
             intent.setType("image/*");
             startActivityForResult(Intent.createChooser(intent, mContext
-                    .getResources()
-                    .getString(R.string.webview_file_upload_hint)),
-                    FILECHOOSER_RESULTCODE);
+                            .getResources()
+                            .getString(R.string.webview_file_upload_hint)),
+                    FILE_CHOOSER_RESULT_CODE);
         }
 
         // For Android < 3.0
@@ -511,23 +454,23 @@ public class MainActivity extends Activity {
         // For Android > 4.1.1
         @SuppressWarnings("unused")
         public void openFileChooser(ValueCallback<Uri> uploadMsg,
-                String acceptType, String capture) {
+                                    String acceptType, String capture) {
             openFileChooser(uploadMsg, acceptType);
         }
 
         // for app cache exceed space
         @Override
         public void onReachedMaxAppCacheSize(long requiredStorage, long quota,
-                QuotaUpdater quotaUpdater) {
+                                             QuotaUpdater quotaUpdater) {
             quotaUpdater.updateQuota(requiredStorage * 2);
         }
 
         // for websql exceed space
         @Override
         public void onExceededDatabaseQuota(String url,
-                String databaseIdentifier, long quota,
-                long estimatedDatabaseSize, long totalQuota,
-                QuotaUpdater quotaUpdater) {
+                                            String databaseIdentifier, long quota,
+                                            long estimatedDatabaseSize, long totalQuota,
+                                            QuotaUpdater quotaUpdater) {
             quotaUpdater.updateQuota(estimatedDatabaseSize * 2);
         }
     }

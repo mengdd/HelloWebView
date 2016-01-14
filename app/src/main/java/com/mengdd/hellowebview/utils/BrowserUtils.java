@@ -1,9 +1,9 @@
 package com.mengdd.hellowebview.utils;
 
-import java.lang.reflect.Method;
-
 import android.content.Intent;
 import android.webkit.WebSettings;
+
+import java.lang.reflect.Method;
 
 public class BrowserUtils {
 
@@ -18,10 +18,9 @@ public class BrowserUtils {
     public static void setWebViewPageCache(WebSettings settings, int capacity) {
         try {
             Method setPageCache = settings.getClass().getMethod(
-                    "setPageCacheCapacity", new Class[] { int.class });
-            setPageCache.invoke(settings, new Object[] { capacity });
-        }
-        catch (Exception e) {
+                    "setPageCacheCapacity", new Class[]{int.class});
+            setPageCache.invoke(settings, new Object[]{capacity});
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
